@@ -22,15 +22,24 @@ final class AppEnvironment: ObservableObject {
     /// (issue 07), so the field keeps working before a key is entered.
     let symbolSearch: any SymbolSearchProviding
 
+    /// Drives earnings refresh (triggers, backoff, Date Change) over the store.
+    /// Started from `AppDelegate.applicationDidFinishLaunching`.
+    let refreshCoordinator: RefreshCoordinator
+
     init(
         settings: AppSettings? = nil,
         modelContainer: ModelContainer? = nil,
         earningsProvider: (any EarningsProvider)? = nil,
-        symbolSearch: (any SymbolSearchProviding)? = nil
+        symbolSearch: (any SymbolSearchProviding)? = nil,
+        refreshCoordinator: RefreshCoordinator? = nil
     ) {
+        let resolvedContainer = modelContainer ?? AppModelContainer.makeShared()
+        let resolvedProvider = earningsProvider ?? FinnhubProvider(apiKeyStore: InMemoryAPIKeyStore())
         self.settings = settings ?? AppSettings()
-        self.modelContainer = modelContainer ?? AppModelContainer.makeShared()
-        self.earningsProvider = earningsProvider ?? FinnhubProvider(apiKeyStore: InMemoryAPIKeyStore())
+        self.modelContainer = resolvedContainer
+        self.earningsProvider = resolvedProvider
         self.symbolSearch = symbolSearch ?? StubSymbolSearchProvider()
+        self.refreshCoordinator = refreshCoordinator
+            ?? RefreshCoordinator(provider: resolvedProvider, modelContainer: resolvedContainer)
     }
 }

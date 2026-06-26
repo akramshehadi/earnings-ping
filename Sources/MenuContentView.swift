@@ -4,6 +4,7 @@ import SwiftUI
 /// The Itsycal-style month calendar (issue 06) joins this layout later.
 struct MenuContentView: View {
     @EnvironmentObject private var environment: AppEnvironment
+    @EnvironmentObject private var refresh: RefreshCoordinator
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,8 +16,18 @@ struct MenuContentView: View {
     }
 
     private var footer: some View {
-        HStack {
-            Spacer()
+        HStack(spacing: 8) {
+            status
+            Spacer(minLength: 8)
+            Button {
+                refresh.refreshNow()
+            } label: {
+                Image(systemName: "arrow.clockwise")
+            }
+            .buttonStyle(.borderless)
+            .disabled(refresh.isRefreshing)
+            .help("Refresh earnings dates now")
+
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }
@@ -24,5 +35,35 @@ struct MenuContentView: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+    }
+
+    /// Compact freshness / failure indicator (CONTEXT: stale "updated X ago").
+    @ViewBuilder
+    private var status: some View {
+        if refresh.isRefreshing {
+            HStack(spacing: 4) {
+                ProgressView().controlSize(.small)
+                Text("Updating…")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        } else if refresh.needsAPIKey {
+            Label("Add Finnhub key", systemImage: "key")
+                .font(.caption)
+                .foregroundStyle(.orange)
+        } else if let summary = refresh.lastErrorSummary {
+            Label(summary, systemImage: "exclamationmark.triangle")
+                .font(.caption)
+                .foregroundStyle(.orange)
+                .lineLimit(1)
+        } else if let last = refresh.lastSuccessfulRefresh {
+            Text("Updated \(last, format: .relative(presentation: .named))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        } else {
+            Text("Not updated yet")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
     }
 }

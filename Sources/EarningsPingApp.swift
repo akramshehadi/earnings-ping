@@ -5,7 +5,7 @@ import SwiftUI
 ///
 /// The composition root (`AppEnvironment`) is owned by `AppDelegate` so it can be
 /// bootstrapped in `applicationDidFinishLaunching` — before any window appears —
-/// which is where the initial Dock-icon activation policy is applied.
+/// which is where the refresh engine is started.
 @main
 struct EarningsPingApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
@@ -15,6 +15,7 @@ struct EarningsPingApp: App {
             MenuContentView()
                 .environmentObject(appDelegate.environment)
                 .environmentObject(appDelegate.environment.settings)
+                .environmentObject(appDelegate.environment.refreshCoordinator)
                 .modelContainer(appDelegate.environment.modelContainer)
         } label: {
             Image(systemName: "calendar.badge.clock")
