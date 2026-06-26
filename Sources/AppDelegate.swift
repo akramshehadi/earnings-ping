@@ -1,14 +1,8 @@
 import AppKit
 
-/// Owns the composition root and performs launch-time setup that must happen
-/// before any UI is shown — notably applying the initial Dock-icon activation
-/// policy so the app respects the user's `showDockIcon` preference from the
-/// first frame.
+/// Owns the composition root so it is created once, up front, and lives for the
+/// app's lifetime. Provides a home for any future launch-time setup.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     let environment = AppEnvironment()
-
-    func applicationDidFinishLaunching(_ notification: Notification) {
-        environment.bootstrap()
-    }
 }

@@ -15,6 +15,7 @@ struct EarningsPingApp: App {
             MenuContentView()
                 .environmentObject(appDelegate.environment)
                 .environmentObject(appDelegate.environment.settings)
+                .modelContainer(appDelegate.environment.modelContainer)
         } label: {
             Image(systemName: "calendar.badge.clock")
                 .accessibilityLabel("Earnings Ping")

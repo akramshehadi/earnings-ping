@@ -1,35 +1,29 @@
-import Combine
+import SwiftData
 import SwiftUI
 
 /// Composition root: the single object that wires the app's collaborators
 /// together and hands them to the SwiftUI view tree via `@EnvironmentObject`.
 ///
-/// For the menu-bar shell (issue 01) this only carries `AppSettings` and keeps
-/// the Dock-icon activation policy in sync with the user's preference. Later
-/// issues hang their dependencies here (persistence store, earnings provider,
-/// refresh engine, notification scheduler, …).
+/// Later issues hang their dependencies here (earnings provider, refresh
+/// engine, notification scheduler, …).
 @MainActor
 final class AppEnvironment: ObservableObject {
     let settings: AppSettings
 
-    private var cancellables = Set<AnyCancellable>()
+    /// SwiftData source-of-truth store, injected into the view tree.
+    let modelContainer: ModelContainer
 
-    init(settings: AppSettings? = nil) {
+    /// Symbol autocomplete source. Stubbed in issue 02; the Finnhub client
+    /// (issue 03) replaces it behind `SymbolSearchProviding`.
+    let symbolSearch: any SymbolSearchProviding
+
+    init(
+        settings: AppSettings? = nil,
+        modelContainer: ModelContainer? = nil,
+        symbolSearch: (any SymbolSearchProviding)? = nil
+    ) {
         self.settings = settings ?? AppSettings()
-    }
-
-    /// Apply launch-time UI state and observe future changes. Call once, after
-    /// the app finishes launching.
-    func bootstrap() {
-        DockIconController.apply(showDockIcon: settings.showDockIcon)
-
-        // Keep the Dock icon in sync whenever the preference changes at runtime,
-        // regardless of which surface (menu, future Settings window) flips it.
-        settings.$showDockIcon
-            .receive(on: RunLoop.main)
-            .sink { showDockIcon in
-                DockIconController.apply(showDockIcon: showDockIcon)
-            }
-            .store(in: &cancellables)
+        self.modelContainer = modelContainer ?? AppModelContainer.makeShared()
+        self.symbolSearch = symbolSearch ?? StubSymbolSearchProvider()
     }
 }

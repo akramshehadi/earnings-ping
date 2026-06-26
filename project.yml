@@ -28,7 +28,9 @@ targets:
       - path: Resources
     settings:
       base:
-        PRODUCT_NAME: "Earnings Ping"
+        # Bundle/executable name is space-free (clean module name + test host);
+        # the user-facing name comes from CFBundleDisplayName below.
+        PRODUCT_NAME: EarningsPing
         PRODUCT_BUNDLE_IDENTIFIER: com.bootstrapbits.EarningsPing
         GENERATE_INFOPLIST_FILE: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
@@ -37,10 +39,27 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: "Earnings Ping"
         INFOPLIST_KEY_NSHumanReadableCopyright: ""
         COMBINE_HIDPI_IMAGES: YES
+  EarningsPingTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests
+    dependencies:
+      - target: EarningsPing
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.bootstrapbits.EarningsPingTests
+        GENERATE_INFOPLIST_FILE: YES
 schemes:
   EarningsPing:
     build:
       targets:
         EarningsPing: all
+        EarningsPingTests: [test]
     run:
       config: Debug
+    test:
+      config: Debug
+      targets:
+        - EarningsPingTests
