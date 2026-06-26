@@ -22,6 +22,9 @@ final class AppEnvironment: ObservableObject {
     /// (issue 07), so the field keeps working before a key is entered.
     let symbolSearch: any SymbolSearchProviding
 
+    /// Schedules earnings reminders and posts immediate Date-Change alerts.
+    let notificationScheduler: EarningsNotificationScheduler
+
     /// Drives earnings refresh (triggers, backoff, Date Change) over the store.
     /// Started from `AppDelegate.applicationDidFinishLaunching`.
     let refreshCoordinator: RefreshCoordinator
@@ -31,15 +34,27 @@ final class AppEnvironment: ObservableObject {
         modelContainer: ModelContainer? = nil,
         earningsProvider: (any EarningsProvider)? = nil,
         symbolSearch: (any SymbolSearchProviding)? = nil,
+        notificationScheduler: EarningsNotificationScheduler? = nil,
         refreshCoordinator: RefreshCoordinator? = nil
     ) {
         let resolvedContainer = modelContainer ?? AppModelContainer.makeShared()
         let resolvedProvider = earningsProvider ?? FinnhubProvider(apiKeyStore: InMemoryAPIKeyStore())
-        self.settings = settings ?? AppSettings()
+        let resolvedSettings = settings ?? AppSettings()
+        let resolvedScheduler = notificationScheduler
+            ?? EarningsNotificationScheduler(
+                center: UserNotificationCenterScheduler(),
+                leadTime: { resolvedSettings.leadTimeTradingDays }
+            )
+        self.settings = resolvedSettings
         self.modelContainer = resolvedContainer
         self.earningsProvider = resolvedProvider
         self.symbolSearch = symbolSearch ?? StubSymbolSearchProvider()
+        self.notificationScheduler = resolvedScheduler
         self.refreshCoordinator = refreshCoordinator
-            ?? RefreshCoordinator(provider: resolvedProvider, modelContainer: resolvedContainer)
+            ?? RefreshCoordinator(
+                provider: resolvedProvider,
+                modelContainer: resolvedContainer,
+                notifications: resolvedScheduler
+            )
     }
 }

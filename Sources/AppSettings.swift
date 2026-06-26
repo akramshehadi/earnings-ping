@@ -30,11 +30,30 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(watchlistSortOrder.rawValue, forKey: Keys.watchlistSortOrder) }
     }
 
+    /// Highest allowed reminder lead time, in trading days.
+    static let maxLeadTimeTradingDays = 10
+
+    /// How many trading days before an Earnings Event the morning reminder
+    /// fires (CONTEXT: *Lead Time*). Default 1, clamped to
+    /// `0...maxLeadTimeTradingDays`. The settings control arrives in issue 07;
+    /// the notification scheduler reads this value today.
+    @Published var leadTimeTradingDays: Int {
+        didSet {
+            let clamped = min(max(leadTimeTradingDays, 0), Self.maxLeadTimeTradingDays)
+            if clamped != leadTimeTradingDays {
+                leadTimeTradingDays = clamped
+                return
+            }
+            defaults.set(leadTimeTradingDays, forKey: Keys.leadTimeTradingDays)
+        }
+    }
+
     private let defaults: UserDefaults
 
     private enum Keys {
         static let maxWatchlistSize = "maxWatchlistSize"
         static let watchlistSortOrder = "watchlistSortOrder"
+        static let leadTimeTradingDays = "leadTimeTradingDays"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -42,5 +61,6 @@ final class AppSettings: ObservableObject {
         self.maxWatchlistSize = (defaults.object(forKey: Keys.maxWatchlistSize) as? Int) ?? 50
         self.watchlistSortOrder = defaults.string(forKey: Keys.watchlistSortOrder)
             .flatMap(WatchlistSortOrder.init(rawValue:)) ?? .soonestFirst
+        self.leadTimeTradingDays = (defaults.object(forKey: Keys.leadTimeTradingDays) as? Int) ?? 1
     }
 }

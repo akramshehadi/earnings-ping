@@ -22,12 +22,14 @@ final class RefreshCoordinator: ObservableObject {
     /// Short, user-facing summary of the most recent failure, if any.
     @Published private(set) var lastErrorSummary: String?
 
-    /// Date Changes detected during refresh. The notification scheduler
-    /// (issue 05) subscribes here to fire immediate "moved" alerts.
+    /// Date Changes detected during refresh, published for any observer (e.g. a
+    /// future calendar view). Immediate "moved" alerts are driven directly from
+    /// each pass's outcome via `notifications`, below.
     let dateChanges = PassthroughSubject<DateChange, Never>()
 
     private let engine: RefreshEngine
     private let modelContainer: ModelContainer
+    private let notifications: EarningsNotificationScheduler?
     private let normalInterval: Duration
     private let now: () -> Date
 
@@ -41,12 +43,14 @@ final class RefreshCoordinator: ObservableObject {
     init(
         provider: any EarningsProvider,
         modelContainer: ModelContainer,
+        notifications: EarningsNotificationScheduler? = nil,
         interval: Duration = .seconds(6 * 3600),
         windowDays: Int = 90,
         now: @escaping () -> Date = Date.init
     ) {
         self.engine = RefreshEngine(provider: provider, windowDays: windowDays, now: now)
         self.modelContainer = modelContainer
+        self.notifications = notifications
         self.normalInterval = interval
         self.now = now
     }
@@ -67,7 +71,10 @@ final class RefreshCoordinator: ObservableObject {
         didStart = true
         observeWake()
         observeNetwork()
-        Task { await refresh(trigger: .launch) }
+        Task {
+            await notifications?.requestAuthorizationIfNeeded()
+            await refresh(trigger: .launch)
+        }
     }
 
     /// Manual "Refresh now".
@@ -86,8 +93,33 @@ final class RefreshCoordinator: ObservableObject {
         for change in outcome.dateChanges {
             dateChanges.send(change)
         }
+        await driveNotifications(for: outcome)
         applyStatus(outcome)
         scheduleNext(for: outcome)
+    }
+
+    /// Fire one immediate alert per Date Change, then re-sync scheduled reminders
+    /// from the just-refreshed store (this is also what reschedules a moved date).
+    private func driveNotifications(for outcome: RefreshOutcome) async {
+        guard let notifications else { return }
+        for change in outcome.dateChanges {
+            await notifications.handleDateChange(change)
+        }
+        await notifications.syncReminders(for: reminderTargets())
+    }
+
+    /// Snapshot the current watchlist's upcoming events as plain reminder values.
+    private func reminderTargets() -> [ReminderTarget] {
+        let tickers = (try? modelContainer.mainContext.fetch(FetchDescriptor<Ticker>())) ?? []
+        return tickers.compactMap { ticker in
+            guard let event = ticker.event else { return nil }
+            return ReminderTarget(
+                symbol: ticker.symbol,
+                companyName: ticker.companyName,
+                eventDate: event.date,
+                session: event.session
+            )
+        }
     }
 
     private func applyStatus(_ outcome: RefreshOutcome) {
