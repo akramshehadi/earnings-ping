@@ -13,10 +13,15 @@ settings:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.0"
-    # Local builds are ad-hoc signed (no Apple Developer account required yet).
-    # Developer ID signing + notarization is configured in issue 08.
+    # Local builds are signed with a self-signed "EarningsPing Dev" code-signing
+    # certificate (created once via Keychain Access → Certificate Assistant). A
+    # stable signing identity gives the binary a constant designated requirement,
+    # so a keychain "Always Allow" grant persists across rebuilds — ad-hoc ("-")
+    # signing changes the code hash every build and re-prompts forever.
+    # No Apple Developer account required. Developer ID signing + notarization for
+    # distribution is configured separately in issue 08.
     CODE_SIGN_STYLE: Manual
-    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_IDENTITY: "EarningsPing Dev"
     DEVELOPMENT_TEAM: ""
 targets:
   EarningsPing:
