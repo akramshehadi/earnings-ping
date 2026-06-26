@@ -1,0 +1,16 @@
+# XcodeGen generates this from project.yml — never commit it.
+*.xcodeproj/
+
+# Build output
+DerivedData/
+build/
+.build/
+*.xcuserstate
+*.xcscmblueprint
+
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved

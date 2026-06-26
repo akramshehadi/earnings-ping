@@ -1,0 +1,46 @@
+# XcodeGen spec — source of truth for the Xcode project.
+# Regenerate the project with: xcodegen generate
+# The generated EarningsPing.xcodeproj is git-ignored on purpose.
+name: EarningsPing
+options:
+  bundleIdPrefix: com.bootstrapbits
+  deploymentTarget:
+    macOS: "14.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    # Local builds are ad-hoc signed (no Apple Developer account required yet).
+    # Developer ID signing + notarization is configured in issue 08.
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    DEVELOPMENT_TEAM: ""
+targets:
+  EarningsPing:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources
+      - path: Resources
+    settings:
+      base:
+        PRODUCT_NAME: "Earnings Ping"
+        PRODUCT_BUNDLE_IDENTIFIER: com.bootstrapbits.EarningsPing
+        GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        # Agent app: menu-bar only, no Dock icon by default (toggled at runtime).
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_CFBundleDisplayName: "Earnings Ping"
+        INFOPLIST_KEY_NSHumanReadableCopyright: ""
+        COMBINE_HIDPI_IMAGES: YES
+schemes:
+  EarningsPing:
+    build:
+      targets:
+        EarningsPing: all
+    run:
+      config: Debug
