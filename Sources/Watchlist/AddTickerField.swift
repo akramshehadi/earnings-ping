@@ -15,6 +15,7 @@ struct AddTickerField: View {
             TextField("Add a ticker (e.g. AAPL)", text: $query)
                 .textFieldStyle(.roundedBorder)
                 .autocorrectionDisabled()
+                .onSubmit(submitTopMatch)
 
             if !results.isEmpty {
                 resultList
@@ -61,6 +62,17 @@ struct AddTickerField: View {
 
     private var trimmedQuery: String {
         query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Enter adds the best current match: an exact symbol hit if the typed text
+    /// names one, otherwise the top autocomplete result. Does nothing when there
+    /// are no results, so only a real (provider-confirmed) ticker is ever added.
+    private func submitTopMatch() {
+        let exact = results.first { $0.symbol.caseInsensitiveCompare(trimmedQuery) == .orderedSame }
+        guard let match = exact ?? results.first else { return }
+        onSelect(match)
+        query = ""
+        results = []
     }
 
     private func runSearch() async {

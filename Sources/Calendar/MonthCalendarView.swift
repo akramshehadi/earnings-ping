@@ -202,6 +202,7 @@ private struct EventDetailRow: View {
                     .padding(.horizontal, 5)
                     .padding(.vertical, 1)
                     .background(Capsule().fill(.quaternary))
+                    .help(event.session.helpText)
                 Spacer(minLength: 4)
                 if let period = event.fiscalPeriod {
                     Text(period)

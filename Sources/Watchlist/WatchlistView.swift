@@ -194,6 +194,7 @@ private struct TickerRow: View {
                 Text(event.session.shortLabel)
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+                    .help(event.session.helpText)
             }
         } else {
             Text("no upcoming date")

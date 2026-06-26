@@ -18,14 +18,29 @@ struct SettingsView: View {
     private static let signupURL = URL(string: "https://finnhub.io/register")!
 
     var body: some View {
-        Form {
-            apiKeySection
-            remindersSection
-            refreshSection
-            watchlistSection
-            generalSection
+        VStack(spacing: 0) {
+            Form {
+                apiKeySection
+                remindersSection
+                refreshSection
+                watchlistSection
+                generalSection
+            }
+            .formStyle(.grouped)
+
+            Divider()
+
+            // Explicit dismiss: a menu-bar-only app has no Close menu item, so the
+            // red button is the only other way out. Labeled "Done" (not "Save")
+            // because every setting persists the moment it changes.
+            HStack {
+                Spacer()
+                Button("Done") { SettingsWindowOpener.shared.close() }
+                    .keyboardShortcut("w", modifiers: .command)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .formStyle(.grouped)
         .frame(width: 460)
         .frame(minHeight: 540)
         .onAppear {

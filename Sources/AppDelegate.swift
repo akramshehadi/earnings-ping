@@ -13,9 +13,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // First run: with no key the app can't fetch anything, so present the
         // Settings window (in its welcome/onboarding state) up front. Deferred a
-        // runloop turn so the `Settings` scene's action target is registered.
+        // runloop turn so it opens after the app finishes activating at launch.
         if !environment.hasAPIKey {
-            DispatchQueue.main.async { SettingsWindowOpener.open() }
+            DispatchQueue.main.async { [environment] in
+                SettingsWindowOpener.shared.open(environment: environment)
+            }
         }
     }
 }

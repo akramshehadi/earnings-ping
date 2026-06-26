@@ -8,9 +8,16 @@ struct MenuContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            MonthCalendarView()
-            Divider()
-            WatchlistView(symbolSearch: environment.symbolSearch)
+            TabView {
+                MonthCalendarView()
+                    .tabItem { Label("Calendar", systemImage: "calendar") }
+                WatchlistView(symbolSearch: environment.symbolSearch)
+                    .tabItem { Label("Watchlist", systemImage: "list.bullet") }
+            }
+            // Keeps the popover from collapsing and limits the height jump when
+            // switching between the (taller) calendar and the watchlist.
+            .frame(minHeight: 360)
+
             Divider()
             footer
         }
@@ -31,11 +38,12 @@ struct MenuContentView: View {
             .help("Refresh earnings dates now")
 
             Button {
-                SettingsWindowOpener.open()
+                SettingsWindowOpener.shared.open(environment: environment)
             } label: {
                 Image(systemName: "gearshape")
             }
             .buttonStyle(.borderless)
+            .keyboardShortcut(",", modifiers: .command)
             .help("Settings")
 
             Button("Quit") {
@@ -59,7 +67,7 @@ struct MenuContentView: View {
             .foregroundStyle(.secondary)
         } else if refresh.needsAPIKey {
             Button {
-                SettingsWindowOpener.open()
+                SettingsWindowOpener.shared.open(environment: environment)
             } label: {
                 Label("Add Finnhub key", systemImage: "key")
                     .font(.caption)

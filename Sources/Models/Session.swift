@@ -27,4 +27,15 @@ enum Session: String, Codable, CaseIterable, Sendable {
         case .unknown: return "Time not set"
         }
     }
+
+    /// Tooltip text expanding the badge acronym, shown on hover over the session
+    /// badge in the watchlist and calendar.
+    var helpText: String {
+        switch self {
+        case .bmo: return "BMO — Before market open"
+        case .amc: return "AMC — After market close"
+        case .dmh: return "DMH — During market hours"
+        case .unknown: return "Reporting time not announced yet"
+        }
+    }
 }
