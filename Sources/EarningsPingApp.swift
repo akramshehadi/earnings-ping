@@ -18,8 +18,9 @@ struct EarningsPingApp: App {
                 .environmentObject(appDelegate.environment.refreshCoordinator)
                 .modelContainer(appDelegate.environment.modelContainer)
         } label: {
-            Image(systemName: "calendar.badge.clock")
-                .accessibilityLabel("Earnings Ping")
+            MenuBarLabel()
+                .environmentObject(appDelegate.environment.settings)
+                .modelContainer(appDelegate.environment.modelContainer)
         }
         .menuBarExtraStyle(.window)
     }

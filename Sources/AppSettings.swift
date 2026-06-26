@@ -30,6 +30,25 @@ final class AppSettings: ObservableObject {
         didSet { defaults.set(watchlistSortOrder.rawValue, forKey: Keys.watchlistSortOrder) }
     }
 
+    /// Highest allowed Imminent Window threshold, in calendar days.
+    static let maxImminentWindowDays = 14
+
+    /// How many calendar days ahead (NY-anchored) an upcoming Earnings Event
+    /// starts badging the menu-bar icon (CONTEXT: *Imminent Window*) — a
+    /// glanceable signal distinct from the trading-day *Lead Time* below.
+    /// Default 3, clamped to `1...maxImminentWindowDays`. The settings control
+    /// arrives in issue 07; the menu-bar badge reads this value today.
+    @Published var imminentWindowDays: Int {
+        didSet {
+            let clamped = min(max(imminentWindowDays, 1), Self.maxImminentWindowDays)
+            if clamped != imminentWindowDays {
+                imminentWindowDays = clamped
+                return
+            }
+            defaults.set(imminentWindowDays, forKey: Keys.imminentWindowDays)
+        }
+    }
+
     /// Highest allowed reminder lead time, in trading days.
     static let maxLeadTimeTradingDays = 10
 
@@ -54,6 +73,7 @@ final class AppSettings: ObservableObject {
         static let maxWatchlistSize = "maxWatchlistSize"
         static let watchlistSortOrder = "watchlistSortOrder"
         static let leadTimeTradingDays = "leadTimeTradingDays"
+        static let imminentWindowDays = "imminentWindowDays"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -62,5 +82,6 @@ final class AppSettings: ObservableObject {
         self.watchlistSortOrder = defaults.string(forKey: Keys.watchlistSortOrder)
             .flatMap(WatchlistSortOrder.init(rawValue:)) ?? .soonestFirst
         self.leadTimeTradingDays = (defaults.object(forKey: Keys.leadTimeTradingDays) as? Int) ?? 1
+        self.imminentWindowDays = (defaults.object(forKey: Keys.imminentWindowDays) as? Int) ?? 3
     }
 }

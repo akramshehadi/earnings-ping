@@ -1,13 +1,15 @@
 import SwiftUI
 
-/// Popover content for the menu-bar item: the Watchlist plus a compact footer.
-/// The Itsycal-style month calendar (issue 06) joins this layout later.
+/// Popover content for the menu-bar item: the Itsycal-style month calendar, the
+/// Watchlist, and a compact freshness/actions footer.
 struct MenuContentView: View {
     @EnvironmentObject private var environment: AppEnvironment
     @EnvironmentObject private var refresh: RefreshCoordinator
 
     var body: some View {
         VStack(spacing: 0) {
+            MonthCalendarView()
+            Divider()
             WatchlistView(symbolSearch: environment.symbolSearch)
             Divider()
             footer
