@@ -3,10 +3,11 @@ import Foundation
 
 /// User preferences, persisted in `UserDefaults`.
 ///
-/// Issue 01 only needs the Dock-icon toggle. The full settings surface (lead
-/// time, refresh cadence, imminent-window threshold, launch-at-login, etc.)
-/// arrives in issue 07; new preferences are added here as `@Published`
-/// properties backed by `UserDefaults`.
+/// The settings surface (lead time, refresh cadence, imminent-window threshold,
+/// max watchlist size, sort order) is edited in `SettingsView` (issue 07); the
+/// API key and launch-at-login live outside `UserDefaults` (Keychain and
+/// `SMAppService`). New preferences are added here as `@Published` properties
+/// backed by `UserDefaults`.
 @MainActor
 final class AppSettings: ObservableObject {
     /// Hard upper bound on the watchlist size, regardless of preference.
@@ -49,6 +50,26 @@ final class AppSettings: ObservableObject {
         }
     }
 
+    /// Bounds on the background refresh cadence, in hours.
+    static let minRefreshIntervalHours = 1
+    static let maxRefreshIntervalHours = 24
+
+    /// How often (hours) the refresh engine re-fetches earnings dates on its
+    /// normal timer. Default 6, clamped to
+    /// `minRefreshIntervalHours...maxRefreshIntervalHours`. Read by
+    /// `RefreshCoordinator` when scheduling the next pass, so a change takes
+    /// effect from the following cycle without a restart.
+    @Published var refreshIntervalHours: Int {
+        didSet {
+            let clamped = min(max(refreshIntervalHours, Self.minRefreshIntervalHours), Self.maxRefreshIntervalHours)
+            if clamped != refreshIntervalHours {
+                refreshIntervalHours = clamped
+                return
+            }
+            defaults.set(refreshIntervalHours, forKey: Keys.refreshIntervalHours)
+        }
+    }
+
     /// Highest allowed reminder lead time, in trading days.
     static let maxLeadTimeTradingDays = 10
 
@@ -74,6 +95,7 @@ final class AppSettings: ObservableObject {
         static let watchlistSortOrder = "watchlistSortOrder"
         static let leadTimeTradingDays = "leadTimeTradingDays"
         static let imminentWindowDays = "imminentWindowDays"
+        static let refreshIntervalHours = "refreshIntervalHours"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -83,5 +105,6 @@ final class AppSettings: ObservableObject {
             .flatMap(WatchlistSortOrder.init(rawValue:)) ?? .soonestFirst
         self.leadTimeTradingDays = (defaults.object(forKey: Keys.leadTimeTradingDays) as? Int) ?? 1
         self.imminentWindowDays = (defaults.object(forKey: Keys.imminentWindowDays) as? Int) ?? 3
+        self.refreshIntervalHours = (defaults.object(forKey: Keys.refreshIntervalHours) as? Int) ?? 6
     }
 }

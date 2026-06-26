@@ -30,6 +30,14 @@ struct MenuContentView: View {
             .disabled(refresh.isRefreshing)
             .help("Refresh earnings dates now")
 
+            Button {
+                SettingsWindowOpener.open()
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .buttonStyle(.borderless)
+            .help("Settings")
+
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
             }
@@ -50,9 +58,15 @@ struct MenuContentView: View {
             .font(.caption)
             .foregroundStyle(.secondary)
         } else if refresh.needsAPIKey {
-            Label("Add Finnhub key", systemImage: "key")
-                .font(.caption)
-                .foregroundStyle(.orange)
+            Button {
+                SettingsWindowOpener.open()
+            } label: {
+                Label("Add Finnhub key", systemImage: "key")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+            .buttonStyle(.plain)
+            .help("Open Settings to add your Finnhub API key")
         } else if let summary = refresh.lastErrorSummary {
             Label(summary, systemImage: "exclamationmark.triangle")
                 .font(.caption)

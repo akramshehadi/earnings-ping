@@ -23,5 +23,14 @@ struct EarningsPingApp: App {
                 .modelContainer(appDelegate.environment.modelContainer)
         }
         .menuBarExtraStyle(.window)
+
+        // Dedicated preferences window (⌘, and the popover's gear button). Also
+        // serves first-run onboarding via its welcome/key-entry state.
+        Settings {
+            SettingsView()
+                .environmentObject(appDelegate.environment)
+                .environmentObject(appDelegate.environment.settings)
+                .environmentObject(appDelegate.environment.loginItem)
+        }
     }
 }

@@ -10,5 +10,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Starts the launch refresh and begins watching for the timer,
         // wake-from-sleep, and network-reconnect triggers.
         environment.refreshCoordinator.start()
+
+        // First run: with no key the app can't fetch anything, so present the
+        // Settings window (in its welcome/onboarding state) up front. Deferred a
+        // runloop turn so the `Settings` scene's action target is registered.
+        if !environment.hasAPIKey {
+            DispatchQueue.main.async { SettingsWindowOpener.open() }
+        }
     }
 }

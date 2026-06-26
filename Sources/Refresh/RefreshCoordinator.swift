@@ -30,7 +30,9 @@ final class RefreshCoordinator: ObservableObject {
     private let engine: RefreshEngine
     private let modelContainer: ModelContainer
     private let notifications: EarningsNotificationScheduler?
-    private let normalInterval: Duration
+    /// Evaluated each time the next pass is scheduled, so a change to the
+    /// user's refresh-cadence setting takes effect from the following cycle.
+    private let normalInterval: () -> Duration
     private let now: () -> Date
 
     private var consecutiveTransientFailures = 0
@@ -44,7 +46,7 @@ final class RefreshCoordinator: ObservableObject {
         provider: any EarningsProvider,
         modelContainer: ModelContainer,
         notifications: EarningsNotificationScheduler? = nil,
-        interval: Duration = .seconds(6 * 3600),
+        interval: @escaping () -> Duration = { .seconds(6 * 3600) },
         windowDays: Int = 90,
         now: @escaping () -> Date = Date.init
     ) {
@@ -149,7 +151,7 @@ final class RefreshCoordinator: ObservableObject {
         } else {
             // success, or auth-only failure (no point retrying fast without a key)
             consecutiveTransientFailures = 0
-            interval = normalInterval
+            interval = normalInterval()
         }
         scheduleNext(after: interval)
     }
