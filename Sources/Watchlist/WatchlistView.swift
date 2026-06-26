@@ -13,6 +13,14 @@ struct WatchlistView: View {
 
     @State private var addError: String?
 
+    /// Measured natural height of the ticker rows, so the scroll area can grow
+    /// to fit them (a bare ScrollView collapses to zero height in a
+    /// `MenuBarExtra(.window)`, which has no height to lend it).
+    @State private var listContentHeight: CGFloat = 0
+
+    /// Tallest the ticker list grows before it starts scrolling.
+    private let maxListHeight: CGFloat = 280
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             header
@@ -92,8 +100,14 @@ struct WatchlistView: View {
                     }
                 }
             }
+            .background(
+                GeometryReader { proxy in
+                    Color.clear.preference(key: ListContentHeightKey.self, value: proxy.size.height)
+                }
+            )
         }
-        .frame(maxHeight: 280)
+        .frame(height: min(listContentHeight, maxListHeight))
+        .onPreferenceChange(ListContentHeightKey.self) { listContentHeight = $0 }
     }
 
     // MARK: - Sorting
@@ -127,6 +141,15 @@ struct WatchlistView: View {
         addError = nil
         modelContext.delete(ticker)
         try? modelContext.save()
+    }
+}
+
+/// Carries the ticker rows' measured height up so the scroll area can size to
+/// it (capped), instead of collapsing inside the menu-bar popover window.
+private struct ListContentHeightKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
 
