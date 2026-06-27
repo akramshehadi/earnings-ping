@@ -22,9 +22,12 @@ struct MenuContentView: View {
             }
             .pickerStyle(.segmented)
             .labelsHidden()
+            .frame(maxWidth: .infinity)
             .padding(.horizontal, 12)
             .padding(.top, 10)
-            .padding(.bottom, 6)
+            .padding(.bottom, 8)
+
+            Divider()
 
             Group {
                 switch tab {
@@ -35,8 +38,10 @@ struct MenuContentView: View {
                 }
             }
             // Keeps the popover from collapsing and limits the height jump when
-            // switching between the (taller) calendar and the watchlist.
-            .frame(minHeight: 360)
+            // switching between the (taller) calendar and the watchlist. Top
+            // alignment pins the shorter Watchlist under the tabs instead of
+            // letting it float in the middle of the reserved height.
+            .frame(minHeight: 360, alignment: .top)
 
             Divider()
             footer

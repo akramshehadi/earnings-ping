@@ -46,17 +46,15 @@ struct WatchlistView: View {
 
     // MARK: - Sections
 
+    /// No title here: the segmented tab in `MenuContentView` already labels this
+    /// surface "Watchlist", so the header only carries the count and sort control.
     private var header: some View {
         HStack(spacing: 8) {
-            Image(systemName: "calendar.badge.clock")
-                .foregroundStyle(.tint)
-            Text("Watchlist")
-                .font(.headline)
-            Spacer()
             Text("\(tickers.count)/\(settings.maxWatchlistSize)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
+            Spacer()
             sortMenu
         }
     }
