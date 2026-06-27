@@ -36,9 +36,10 @@ struct FinnhubProvider: EarningsProvider {
 
         return response.result
             // US-listed equities only: Finnhub tags foreign listings with an
-            // exchange suffix (e.g. "2788.T", "603020.SS"). Drop anything with a
-            // dot, and keep common stock.
-            .filter { !$0.symbol.contains(".") && $0.type.caseInsensitiveCompare("Common Stock") == .orderedSame }
+            // exchange suffix (e.g. "2788.T", "603020.SS"), so drop anything with
+            // a dot. Keep the equity types that actually report earnings — common
+            // stock, ADRs (e.g. TSM, BABA) and REITs — and drop funds/ETPs.
+            .filter { !$0.symbol.contains(".") && Self.searchableEquityTypes.contains($0.type.lowercased()) }
             .map { SymbolMatch(symbol: $0.symbol, companyName: $0.description) }
     }
 
@@ -123,6 +124,11 @@ struct FinnhubProvider: EarningsProvider {
     }
 
     // MARK: Helpers
+
+    /// Finnhub `/search` `type` values kept for the Watchlist: equity instruments
+    /// that report earnings. Compared lower-cased. ETPs, mutual/closed-end funds,
+    /// units, rights, warrants, etc. are excluded.
+    private static let searchableEquityTypes: Set<String> = ["common stock", "adr", "reit"]
 
     /// Finnhub dates are bare `yyyy-MM-dd` strings; anchor them to midnight
     /// America/New_York so "the report day" is unambiguous across time zones.

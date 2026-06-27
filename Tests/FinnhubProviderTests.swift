@@ -91,11 +91,14 @@ private enum Fixtures {
 
     static let emptyEarnings = Data(#"{"earningsCalendar":[]}"#.utf8)
 
-    /// Mix of a US common stock, a US non-common type, and a foreign listing.
+    /// Mix of a US common stock, an ADR (TSM), a REIT, a fund/ETP, and a foreign
+    /// listing — exercises every branch of the search type/exchange filter.
     static let search = Data("""
-    {"count":3,"result":[
+    {"count":5,"result":[
       {"description":"APPLE INC","displaySymbol":"AAPL","symbol":"AAPL","type":"Common Stock"},
+      {"description":"TAIWAN SEMICONDUCTOR MANUFACTURING","displaySymbol":"TSM","symbol":"TSM","type":"ADR"},
       {"description":"APPLE HOSPITALITY REIT","displaySymbol":"APLE","symbol":"APLE","type":"REIT"},
+      {"description":"SPDR S&P 500 ETF TRUST","displaySymbol":"SPY","symbol":"SPY","type":"ETP"},
       {"description":"TOYOTA MOTOR CORP","displaySymbol":"2788.T","symbol":"2788.T","type":"Common Stock"}
     ]}
     """.utf8)
@@ -149,14 +152,16 @@ struct FinnhubProviderOfflineTests {
         #expect(next?.fiscalPeriod == "Q3 FY2026")
     }
 
-    @Test func searchKeepsUSCommonStockOnly() async throws {
+    @Test func searchKeepsUSEquitiesDropsFundsAndForeign() async throws {
         StubURLProtocol.setHandler { _ in .init(statusCode: 200, body: Fixtures.search) }
         let provider = FinnhubProvider.stubbed()
 
         let matches = try await provider.searchSymbols(matching: "apple")
 
-        // REIT (APLE) and foreign listing (2788.T) are dropped.
-        #expect(matches.map(\.symbol) == ["AAPL"])
+        // Common stock, ADRs (TSM) and REITs (APLE) all report earnings and are
+        // kept, in source order. The ETP (SPY) and the foreign listing (2788.T)
+        // are dropped.
+        #expect(matches.map(\.symbol) == ["AAPL", "TSM", "APLE"])
         #expect(matches.first?.companyName == "APPLE INC")
     }
 
