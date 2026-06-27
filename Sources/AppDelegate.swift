@@ -12,10 +12,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         environment.refreshCoordinator.start()
 
         // First run: with no key the app can't fetch anything, so present the
-        // Settings window (in its welcome/onboarding state) up front. Deferred a
-        // runloop turn so it opens after the app finishes activating at launch.
-        if !environment.hasAPIKey {
-            DispatchQueue.main.async { [environment] in
+        // Settings window (in its welcome/onboarding state) up front. The Keychain
+        // check runs off the main thread (see `hasStoredAPIKey`): a stored key can
+        // raise an ACL prompt, and reading it synchronously here would let that
+        // modal freeze launch and hang `xcodebuild test`. The `await` also defers
+        // the window past launch activation, replacing the old runloop hop.
+        Task { [environment] in
+            if await !environment.hasStoredAPIKey() {
                 SettingsWindowOpener.shared.open(environment: environment)
             }
         }

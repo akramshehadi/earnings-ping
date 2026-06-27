@@ -10,8 +10,10 @@ struct SettingsView: View {
     @EnvironmentObject private var settings: AppSettings
     @EnvironmentObject private var loginItem: LoginItemController
 
-    /// Mirrors `environment.hasAPIKey`; seeded in `onAppear` and flipped locally
-    /// when the user saves or removes a key (the store isn't `@Published`).
+    /// Mirrors `environment.hasStoredAPIKey()`; seeded in `.task` (an off-main-
+    /// thread Keychain read) and flipped locally when the user saves or removes a
+    /// key (the store isn't `@Published`). Defaults to `true` so the onboarding
+    /// form never flashes before the read resolves for the common (key-present) case.
     @State private var hasKey = true
     @State private var isEditingKey = false
 
@@ -43,8 +45,10 @@ struct SettingsView: View {
         }
         .frame(width: 460)
         .frame(minHeight: 540)
-        .onAppear {
-            hasKey = environment.hasAPIKey
+        .task {
+            // Off-main-thread Keychain read (see AppEnvironment.hasStoredAPIKey)
+            // so an ACL prompt can't freeze the Settings window on open.
+            hasKey = await environment.hasStoredAPIKey()
             loginItem.refresh()
         }
     }

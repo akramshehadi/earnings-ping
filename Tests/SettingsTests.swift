@@ -125,6 +125,33 @@ struct APIKeyStoreTests {
     }
 }
 
+// MARK: - Off-main-thread key presence (issue 08)
+
+/// `storedAPIKeyExists(in:)` backs the first-run launch gate and the Settings
+/// window's onboarding state. It must read the key off the main thread so a
+/// Keychain ACL prompt can never freeze launch (issue 07 carry-over); these
+/// tests pin its presence logic.
+@Suite("Stored-key presence (off-main-thread)")
+struct StoredAPIKeyPresenceTests {
+    @Test func reportsTrueWhenAKeyIsStored() async {
+        #expect(await storedAPIKeyExists(in: InMemoryAPIKeyStore(key: "abc123")) == true)
+    }
+
+    @Test func reportsFalseWhenEmpty() async {
+        #expect(await storedAPIKeyExists(in: InMemoryAPIKeyStore(key: nil)) == false)
+    }
+
+    /// With nothing in the Keychain, the environment fallback still counts as a
+    /// usable key. Uses a unique service so it can't collide with a real entry.
+    @Test func countsTheEnvironmentFallbackAsPresent() async {
+        let store = KeychainAPIKeyStore(
+            service: "EarningsPingTests-\(UUID().uuidString)",
+            environmentFallback: "env-key"
+        )
+        #expect(await storedAPIKeyExists(in: store) == true)
+    }
+}
+
 // MARK: - Refresh-interval setting
 
 @Suite("Refresh interval setting")

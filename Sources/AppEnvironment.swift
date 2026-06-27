@@ -79,9 +79,28 @@ final class AppEnvironment: ObservableObject {
     }
 
     /// Whether a usable API key is already stored — drives the first-run
-    /// onboarding gate and the settings welcome state.
-    var hasAPIKey: Bool {
-        let key = (try? apiKeyStore.apiKey()) ?? nil
-        return key?.isEmpty == false
+    /// onboarding gate and the Settings welcome state.
+    ///
+    /// Reads the Keychain on a background task, never the main thread: a stored
+    /// key can raise a per-item ACL prompt ("EarningsPing wants to use your
+    /// confidential information…"), and a synchronous main-thread read would let
+    /// that modal freeze app launch and hang `xcodebuild test` (issue 07
+    /// carry-over). Awaiting here suspends rather than blocks, so the main thread
+    /// stays responsive whether or not the prompt appears. The full fix — the
+    /// data-protection keychain — needs an Apple-issued signing identity
+    /// (self-signed/ad-hoc are AMFI-killed when they claim `keychain-access-groups`)
+    /// and is deferred to the signing/enrollment issue (08).
+    func hasStoredAPIKey() async -> Bool {
+        await storedAPIKeyExists(in: apiKeyStore)
     }
+}
+
+/// Reads `store` off the main thread so a Keychain ACL prompt can never freeze
+/// the caller. Backs `AppEnvironment.hasStoredAPIKey()`; kept as a free function
+/// so it is unit-testable without standing up the whole composition root.
+func storedAPIKeyExists(in store: any APIKeyStoring) async -> Bool {
+    await Task.detached(priority: .utility) {
+        let key = (try? store.apiKey()) ?? nil
+        return key?.isEmpty == false
+    }.value
 }
