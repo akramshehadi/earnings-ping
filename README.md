@@ -43,9 +43,3 @@ make test       # run the test suite
 ```
 
 The result is a menu-bar-only agent app (no Dock icon) — click the menu-bar icon to open the Watchlist / Calendar popover. Run `make help` for the full list of dev and release tasks.
-
-## Documentation
-
-- [`CONTEXT.md`](CONTEXT.md) — domain glossary (Ticker, Watchlist, Earnings Event, Session, Date Change, Lead Time, …)
-- [`docs/adr/`](docs/adr) — architecture decision records
-- [Product requirements](.scratch/earnings-ping/PRD.md)

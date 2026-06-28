@@ -14,3 +14,10 @@ build/
 # Swift Package Manager
 .swiftpm/
 Package.resolved
+
+# Planning / agent scaffolding — kept locally, not published to the remote
+/docs/
+/.scratch/
+/CONTEXT.md
+/AGENTS.md
+/CLAUDE.md
