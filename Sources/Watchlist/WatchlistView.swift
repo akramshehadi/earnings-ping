@@ -189,10 +189,7 @@ private struct TickerRow: View {
             VStack(alignment: .trailing, spacing: 1) {
                 Text(event.date, format: .dateTime.month(.abbreviated).day())
                     .font(.callout)
-                Text(event.session.shortLabel)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .help(event.session.helpText)
+                SessionBadge(session: event.session)
             }
         } else {
             Text("no upcoming date")

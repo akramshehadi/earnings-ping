@@ -197,12 +197,7 @@ private struct EventDetailRow: View {
             HStack(spacing: 6) {
                 Text(event.ticker?.symbol ?? "—")
                     .fontWeight(.semibold)
-                Text(event.session.shortLabel)
-                    .font(.caption2)
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 1)
-                    .background(Capsule().fill(.quaternary))
-                    .help(event.session.helpText)
+                SessionBadge(session: event.session, style: .capsule)
                 Spacer(minLength: 4)
                 if let period = event.fiscalPeriod {
                     Text(period)
